@@ -1,0 +1,22 @@
+3 def 2  
+0 def 2
+1 def 1 o
+2 def 2 o
+2 def 2 o 
+2 def 2 o
+3 def 2
+2 def 2 o
+2 def 2 o
+
+// 3이 2로 나오는 것.
+// 예각 삼각형이 둔각삼각형으로 나온다.
+
+3 def 3 o
+0 def 2
+1 def 1 o
+2 def 2 o
+2 def 2 o
+2 def 2 o 
+3 def 3 o
+2 def 2 o
+2 def 2 o

@@ -1,8 +1,7 @@
 /////////////////////////////////////////////////////// Part5 LED Struct
 
-// int i??? called by loop. needed check! 160803 JY
-void struct_Turn_on_LED(int idx_song) {
-     
+void struct_Turn_on_LED(int i) {
+
   location = 0;
   DURATION = 0;
   TEMPO = 0;
@@ -21,7 +20,10 @@ void struct_Turn_on_LED(int idx_song) {
 
   start_Time = millis();
   previousMillis = start_Time;
-
+  //////////////////////////////////////////////// by SEOL - 9.12 곡의 전체 재생 시간은 rTime에 저장되어 있어야 함 calculate_total_playtime() 함수 쓰지 않기
+  // 대신에 여기 함수 들어오기 전에 total_Time = atol(rTime); 이렇게 호출했을 것. 아니면 여기서 호출 // by SEOL 9.12
+  //total_Time = calculate_total_playtime();
+  //  SerialUSB.print("total_Time @ struct_Turn_on_LED(): "); SerialUSB.println(total_Time);
 
   for (int j = 4; j < strlen(rNote); j++) { // should use "strlen()" NOT sizeof
 
@@ -79,20 +81,17 @@ void struct_Turn_on_LED(int idx_song) {
 
           //          play(GREEN);
 
-
-          // Timer4
           if (sensing_notesCount > 0) {
-
-            for (int j = 0; j < sensing_notesCount; j++)
-              if (notes[i][0] == sensing_notes[j][1] && notes[i][0] == sensing_notes[j][1]) play(YELLOW);
-
+            
+            for(int j = 0; j < sensing_notesCount; j++)              
+            if (notes[i][0] == sensing_notes[j][1] && notes[i][0] == sensing_notes[j][1]) play(YELLOW);
+            
           }
           else play(GREEN);
 
           LED_turnoff();
         }
 
-        // Timer3
         //        if (sensing_notesCount > 0) {
         //          for (int i = 0; i < sensing_notesCount; i++) {
         //            setNote( sensing_notes[i][1], sensing_notes[i][0] );
@@ -172,146 +171,6 @@ void struct_Turn_on_LED(int idx_song) {
   mymenu = PLAYLIST_MENU;
 
 }
-
-void play_music_realtime(const char *music, int recv_pTime) {
-
-  location = 0;
-  DURATION = 0;
-  TEMPO = 0;
-  notesCount = 0;
-  is_move_Time_updated = 0;
-
-  total_Time = recv_pTime;
-
-
-  // get a tempo value
-  if ( music[3] == '!' ) {
-    int Cal_t = (music[0] - '0') * 100 + (music[1] - '0') * 10 + (music[2] - '0');
-    TEMPO = 60000 / (double)Cal_t;
-  } else {
-    // no tempo value available. wrong music format! set a default tempo
-    TEMPO = 750; // 60000ms / 80 = 750ms interval (default)
-  }
-
-  // save the original_TEMPO
-  original_TEMPO = TEMPO;
-
-//    Timer4............. start`~~~~
-
-  for (int i = 4; i < strlen(music); i++) { // should use "strlen()" NOT sizeof
-
-
-    ch = music[i];
-
-    if (ch == 'W')           DURATION = TEMPO * 4;
-    else if (ch == 'H')      DURATION = TEMPO * 2;
-    else if (ch == 'Q')      DURATION = TEMPO * 1;
-    else if (ch == 'E')      DURATION = TEMPO * 0.5;
-    else if (ch == 'S')      DURATION = TEMPO * 0.25;
-    //successive 3-note DURATION
-    else if (ch == 'q')      DURATION = (TEMPO * 1) / 3.0;
-    else if (ch == 'e')      DURATION = (TEMPO * 0.5) / 3.0;
-    else if (ch == 's')      DURATION = (TEMPO * 0.25) / 3.0;
-
-
-
-    else if (ch >= '0' && ch <= '9') {
-      if (location > 0 )    location = location * 10 + ch - '0';
-      else            location = ch - '0';
-    }
-    else if (ch == ',') {
-      line = location;
-      location = 0;
-    }
-    else if (ch == '-') { // a new note is identified
-      fret = location;
-      location = 0;
-
-      notes[notesCount][0] = line;
-      notes[notesCount][1] = fret;
-      notesCount++;
-
-    } else if (ch ==  '@') {
-
-      // notesCount check
-      SerialUSB.print("notesCount : "); SerialUSB.println(notesCount++);
-      for (int no = 0; no < notesCount; no++) {
-        SerialUSB.print(notes[no][0]); SerialUSB.print(" "); SerialUSB.println(notes[no][1]);
-      }
-
-
-      stime = millis();
-      do {
-
-        uiStep();
-        checkPowerOff();
-
-        
-        checkRemoteControl();
-
-
-
-        if ( is_move_Time_updated == 1) {
-          break;
-        }
-        if ( realtime_play_stop == true) {
-          realtime_play_stop = false;
-          onPaused = false;
-          return;
-        }
-
-
-        for (int i = 0; i < notesCount; i++) {
-
-          if (notes[i][1] == 0) { 
-            continue;
-          }
-          else {
-            setNote( notes[i][0], notes[i][1] );
-          }
-          play(GREEN);
-          LED_turnoff();
-        }
-        if ( onPaused ) {
-          stime = millis();
-        }
-        current_time = millis();
-        elapsed_time = current_time - stime; // needs to think about the overflow case
-
-      } while ( elapsed_time < DURATION );
-
-      LED_turnoff();
-      initData();
-      notesCount = 0;
-
-
-      // seek timing
-      if ( is_move_Time_updated == 1 ) {
-
-        // calculate ratio
-        move_Point = ( move_Point * strlen(music) )  / total_Time;
-
-
-        SerialUSB.print("move_Point : "); SerialUSB.print(move_Point);
-        SerialUSB.print("  strlen : "); SerialUSB.print(strlen(music));
-        SerialUSB.print("    "); SerialUSB.println(move_Point / (double)strlen(music));
-
-
-        i = 3; //j's default value is the beginning position of rNote. but j will be closest '@' position to the newposition.
-        for (int pos = move_Point; pos >= 4; pos--) {
-          if (music[pos] == '@') {
-            i = pos;
-            break;
-          }
-        }
-        //Serial.print("i after:"); Serial.println(i);
-        is_move_Time_updated = 0;
-      }
-    }
-  }
-
-}
-
 
 void playOpenString( int string_number ) {
   int max_fret = 1;
@@ -408,32 +267,6 @@ void FR_ShiftResistor()
 
   digitalWrite( FR_LE, HIGH );
   digitalWrite( FR_LE, LOW) ;
-}
-
-
-
-
-// ???????????????????? not used
-long calculate_total_playtime(void) {
-  long tot = 0L;
-  int Cal_t = (rNote[0] - '0') * 100 + (rNote[1] - '0') * 10 + (rNote[2] - '0');
-  TEMPO = 60000 / (double)Cal_t;
-
-  for (int j = 4; j < strlen(rNote); j++) {
-    char ch = rNote[j];
-    if (ch == 'W')           DURATION = TEMPO * 4;
-    else if (ch == 'H')      DURATION = TEMPO * 2;
-    else if (ch == 'Q')      DURATION = TEMPO * 1;
-    else if (ch == 'E')      DURATION = TEMPO * 0.5;
-    else if (ch == 'S')      DURATION = TEMPO * 0.25;
-    //successive 3-note DURATION
-    else if (ch == 'q')      DURATION = (TEMPO * 1) / 3.0;
-    else if (ch == 'e')      DURATION = (TEMPO * 0.5) / 3.0;
-    else if (ch == 's')      DURATION = (TEMPO * 0.25) / 3.0;
-    else continue;
-    tot += DURATION;
-  }
-  return tot;
 }
 
 /////////////////////////////////////////////////////// Part5 END

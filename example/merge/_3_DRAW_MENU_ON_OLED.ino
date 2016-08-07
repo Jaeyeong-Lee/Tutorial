@@ -1,25 +1,43 @@
 /////////////////////////////////////////////////////// Part3 OLED for drawing menu
 
+//void drawMainMenu() {
+//
+//  display.setTextSize(1);
+//  display.setTextColor(2);
+//
+//  for (int i = 0; i < menu_count; i++) {
+//
+//    if ( i == menu_current ) display.fillRect(0, display.height() / 6 * (i + 1), display.width(), display.height() / 6, 1);
+//
+//    display.setCursor(5, (display.height() / 6) * (i + 1) + 1);
+//    display.println(main_strings[i]);
+//
+//  }
+//  display.display();
+//  display.clearDisplay();
+//
+//}
+
 void drawMainMenu() {
 
   display.fillRoundRect(-5, 25, 86, display.height() / 6 + 4, 7, 1);
-   display.drawLine(84, 2, 84, display.height() - 2, 1);
- display.drawBitmap(115, 0,  bluetoothbmp, 12, 12, 1);
- 
- switch (menu_current) {		
-    case 0:  display.drawBitmap(88, 13,  play_list_bmp, 40, 40, 1); break;		
-    case 1:  display.drawBitmap(88, 13,  guitar_chord_bmp, 40, 40, 1); break;		
-    case 2:  display.drawBitmap(88, 13,  live_play_bmp, 40, 40, 1); break;		
-    case 3:  display.drawBitmap(88, 13,  record_bmp, 40, 40, 1); break;		
-    case 4:  display.drawBitmap(88, 13,  file_manager_bmp, 40, 40, 1); break;		
-    case 5:  display.drawBitmap(88, 13,  format_bmp, 40, 40, 1); break;		
-    case 6:  display.drawBitmap(88, 13,  setting_bmp, 40, 40, 1); break;		
-  }	
- 
- 
+  display.drawLine(84, 2, 84, display.height() - 2, 1);
+  display.drawBitmap(115, 0,  bluetoothbmp, 12, 12, 1);
+
+  switch (menu_current) {
+
+    case 0:  display.drawBitmap(88, 13,  play_list_bmp, 40, 40, 1); break;
+    case 1:  display.drawBitmap(88, 13,  guitar_chord_bmp, 40, 40, 1); break;
+    case 2:  display.drawBitmap(88, 13,  live_play_bmp, 40, 40, 1); break;
+    case 3:  display.drawBitmap(88, 13,  record_bmp, 40, 40, 1); break;
+    case 4:  display.drawBitmap(88, 13,  file_manager_bmp, 40, 40, 1); break;
+    case 5:  display.drawBitmap(88, 13,  format_bmp, 40, 40, 1); break;
+    case 6:  display.drawBitmap(88, 13,  setting_bmp, 40, 40, 1); break;
+
+  }
+
   display.setTextSize(1);
   display.setTextColor(2);
-
 
   if (menu_current == 0) {
 
@@ -278,7 +296,7 @@ void drawChordMenu() {
     display.setTextColor(1);
     display.setFont(&FreeSerifBold12pt7b);
     display.setCursor(3, display.height() / 2 + 8);
-    if(menu_current == 0) display.drawBitmap(2, display.height() / 2 - 9, backbmp, 20, 18, 1);
+    if (menu_current == 0) display.drawBitmap(2, display.height() / 2 - 9, backbmp, 20, 18, 1);
     else display.println(chord_strings[menu_current]);
 
     display.setFont(&FreeSerifBold9pt7b);
@@ -397,61 +415,75 @@ void drawPlayRecordMenu() {
   if (menu_current == 0)  display.fillRect(0, 52, 37, 12, 1); else display.drawRect(0, 52, 37, 12, 1);
   if (menu_current == 1)  display.fillRect(91, 52, 37, 12, 1); else display.drawRect(91, 52, 37, 12, 1);
 
-  if (record_status == 1) { 
-  display.setCursor(4, 54); 
-  display.println("PAUSE"); 
-  } else if (record_status == 0) { 
-  display.setCursor(1, 54); 
-  display.println("RESUME"); 
+  if (record_status == 1) {
+    display.setCursor(4, 54);
+    display.println("PAUSE");
+  } else if (record_status == 0) {
+    display.setCursor(1, 54);
+    display.println("RESUME");
   }
   display.setCursor(98, 54);
   display.println("SAVE");
 
   display.drawCircle(63, 29, 24, 1);
   display.drawCircle(63, 29, 22, 1);
-  if (record_status == 1) display.fillCircle(63, 29, 7, 1); else if (record_status == 0) { display.fillRect(54, 19, 7, 21, 1); display.fillRect(66, 19, 7, 21, 1); }
+  if (record_status == 1) display.fillCircle(63, 29, 7, 1); else if (record_status == 0) {
+    display.fillRect(54, 19, 7, 21, 1);
+    display.fillRect(66, 19, 7, 21, 1);
+  }
 
   display.display();
   display.clearDisplay();
 
 }
 
-void drawSettingMenu() {		
-  display.setTextSize(1);		
-  display.setTextColor(2);		
-  for (int i = 0; i < menu_count; i++) {		
-    if ( i == menu_current ) display.fillRect(0, display.height() / 6 * (i + 1), display.width(), display.height() / 6, 1);		
-    display.setCursor(5, (display.height() / 6) * (i + 1) + 1);		
-    display.println(setting_strings[i]);		
-  }		
-  display.display();		
-  display.clearDisplay();		
-}		
-void drawCalibration() {		
-  if (sample_count >= 1000) {		
-    display.setCursor(1, 50);		
-    display.println("--- COMPLETE !!");		
-    display.display();		
-    delay(1000);		
-    display.clearDisplay();		
-    menu_redraw_required = 1;		
-  }		
-  else {		
-    display.setTextSize(1);		
-    display.setTextColor(2);		
-    display.setCursor(1, 2);		
-    display.println("Start Calibration !!");		
-    display.display();		
-    delay(1000);		
-    display.setCursor(1, 12);		
-    display.println("For Accuracy, Please,");		
-    display.setCursor(1, 22);		
-    display.println("DO NOT TOUCH !!");		
-    display.setCursor(1, 32);		
-    display.println("ANY STRINGS !!");		
-    display.display();		
-    delay(1500);		
-  }		
+void drawSettingMenu() {
+
+  display.setTextSize(1);
+  display.setTextColor(2);
+
+  for (int i = 0; i < menu_count; i++) {
+
+    if ( i == menu_current ) display.fillRect(0, display.height() / 6 * (i + 1), display.width(), display.height() / 6, 1);
+
+    display.setCursor(5, (display.height() / 6) * (i + 1) + 1);
+    display.println(setting_strings[i]);
+
+  }
+  display.display();
+  display.clearDisplay();
+
+}
+
+void drawCalibration() {
+
+
+  if (sample_count >= 1000) {
+    display.setCursor(1, 50);
+    display.println("--- COMPLETE !!");
+    display.display();
+    delay(1000);
+
+    display.clearDisplay();
+    menu_redraw_required = 1;
+  }
+  else {
+    display.setTextSize(1);
+    display.setTextColor(2);
+    display.setCursor(1, 2);
+    display.println("Start Calibration !!");
+    display.display();
+    delay(1000);
+    display.setCursor(1, 12);
+    display.println("For Accuracy, Please,");
+    display.setCursor(1, 22);
+    display.println("DO NOT TOUCH !!");
+    display.setCursor(1, 32);
+    display.println("ANY STRINGS !!");
+    display.display();
+    delay(1500);
+  }
+
 }
 
 void drawSubMenu() {
@@ -461,7 +493,7 @@ void drawSubMenu() {
 
   switch (mymenu) {
 
-    case LIVEPLAY_MENU:  
+    case LIVEPLAY_MENU:
       display.setCursor(5, (display.height() / 2) - 5);
       display.println("Playing...");
       break;
@@ -480,8 +512,6 @@ void drawSubMenu() {
   display.clearDisplay();
 
 }
-    
-
 
 void makeTime ( char* display_time, long playtime ) { // modified by SEOL
   int printMinute, printSecond;

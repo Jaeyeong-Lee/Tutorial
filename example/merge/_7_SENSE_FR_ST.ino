@@ -107,9 +107,6 @@ int getFretNo(int stringNo) {
 void sense_Note() {
 
   timeCount++; //시간의 흐름을 구하기 위함
-  timeCount ++;
-
-
 
   analog_Read();
 
@@ -649,4 +646,3 @@ void Do_calibration() {
 
 }
 /////////////////////////////////////////////////////// Part7 END
-

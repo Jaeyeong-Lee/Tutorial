@@ -137,6 +137,7 @@ void selectMenu() {
         break;
       case LIVEPLAY_MENU:
         mymenu = LIVEPLAY_MENU;
+        is_liveplay = 1;
         break;
       case RECORD_MENU:
         mymenu = RECORD_MENU;
@@ -150,6 +151,7 @@ void selectMenu() {
         break;
       case DOWNLOAD_MENU:
         mymenu = DOWNLOAD_MENU;
+        //        menu_Download();
         break;
       case FORMAT_MENU:
         mymenu = FORMAT_MENU;
@@ -349,22 +351,8 @@ void selectMenu() {
     }
 
   }
-
-  // while liveplay, escape.
-  else if (mymenu == LIVEPLAY_MENU) {
-    mymenu = MAIN_MENU;
-    menu_count = MAIN_ITEMS;
-    max_current = menu_count;
-    menu_current = 0;
-  }
-  // while liveplay, escape.
-  else if (mymenu == DOWNLOAD_MENU) {
-    mymenu = MAIN_MENU;
-    menu_count = MAIN_ITEMS;
-    max_current = menu_count;
-    menu_current = 0;
-  }
-
+  else if (mymenu == LIVEPLAY_MENU)      mymenu = MAIN_MENU;
+  else if (mymenu == DOWNLOAD_MENU)      mymenu = MAIN_MENU;
   else if (mymenu == FORMAT_MENU)        mymenu = MAIN_MENU;
   else if (mymenu == SETTING_MENU) {
 
@@ -395,312 +383,93 @@ void selectMenu() {
     }
 
   }
+
 }
 
 void menu_Download() {
 
-  while (true) {
+  while ((ch = (char)Serial3.read()) != '#') {
 
-    ch = (char)Serial2.read();
+    Serial.println(ch);
+    delay(200);
 
     uiStep();
     updateMenu();
     checkPowerOff();
-
-    // escape this menu
     if (mymenu == MAIN_MENU) break;
+    //    if ( ch < 0 ) continue;
+    if ( (int)ch == 255 ) continue;
 
-    // blocking, if no input
-    if ( ch == 255 ) continue;
-
-
-    // file download and save
-    // #song count: Record / Score : ....
-    // "#2:0:name1:name1's contents:name2:name2's contents:"    download record file
-    // "#2:1:name1:name1's contents:name2:name2's contents:"    download score file
-    if ( ch == '#' ) {
-
-      int recv_cnt;
-      int tf;
-      bool isRecord = true;
-
-      recv_cnt = (Serial3.readStringUntil(':')).toInt();
-      SerialUSB.println(recv_cnt);
-      tf = (Serial3.readStringUntil(':')).toInt();
-      SerialUSB.println(tf);
-
-
-      if ( tf == 1 )    isRecord = false;
-
-
-      for (int no = 0; no < recv_cnt; no++) {
-
-        Serial2.write("1");
-
-        String recv_fileName;
-        recv_fileName = Serial2.readStringUntil(':');
-
-        SerialUSB.print("recv_fileName : "); SerialUSB.println(recv_fileName);
-
-        makeFile(isRecord, recv_fileName);
-      }
-
-      // ack about every contents
-      Serial2.write("1");
-
-      while ( (char) Serial2.read() != '*' ) {}
-
-      // download done.
-      Serial2.write("#");
-    }
-
-
-    // sendFilelist to app
-    // "/0:"                 send RECORDLIST   using sendFileList(true)
-    // "/1:"                 send SONGLIST     using sendFileList(false)
-    if ( ch == '/' ) {
-
-      int tf;
-      bool isRecord = true;
-
-      tf = (Serial2.readStringUntil(':')).toInt();
-      SerialUSB.println(tf);
-
-
-      if ( tf == 1 )    isRecord = false;
-
-      sendFileList(isRecord);
-    }
-
-
-    // if ch == '('
-    // receive file_cnt,filename and remove them
-
-    // input example
-    // "(3:0:record01:record02:record03:"        or
-    // "(2:1:To you I:High Position:"
-    if ( ch == '(' ) {
-
-      int recv_cnt;
-      int tf;
-      bool isRecord = true;
-
-      recv_cnt = (Serial2.readStringUntil(':')).toInt();
-      Serial.println(recv_cnt);
-
-      tf = (Serial3.readStringUntil(':')).toInt();
-      if ( tf == 1 )    isRecord = false;
-
-      String names[recv_cnt];
-
-      for (int i = 0; i < recv_cnt; i++) {
-        names[i] = Serial2.readStringUntil(':');
-        SerialUSB.println(names[i]);
-      }
-
-      for (int i = 0; i < recv_cnt; i++)
-        removeSelectedFile(isRecord, names[i]);
-    }
-
-
-    // if ch == ')'
-    // receive file_cnt,filename and send contents
-
-    // input example
-    // ")3:record01:record02:record03:"
-    // score file is not used. only record file..
-
-    // "Record01,Record02,Record03,;"
-    if ( ch == ')' ) {
-
-      int recv_cnt;
-      bool isRecord;
-
-      recv_cnt = (Serial2.readStringUntil(':')).toInt();
-      SerialUSB.println(recv_cnt);
-
-
-      String names[recv_cnt];
-
-      for (int i = 0; i < recv_cnt; i++) {
-        names[i] = Serial2.readStringUntil(':');
-        SerialUSB.println(names[i]);
-      }
-
-
-      for (int i = 0; i < recv_cnt; i++)
-        sendFileContents(names[i]);
-
-
-
-    }
-
-    delay(200);
+    //    Serial.print(ch);
 
   }
 
+  if (mymenu == DOWNLOAD_MENU) {
 
-}
+    Serial3.write("1");
 
-void menu_LivePlay() {
+    int char_index = 0;
+    int enter_count = 0;
 
-  Timer4.start(2000);
+    while ( (ch = (char)Serial3.read()) != '#' ) {
+      //      if ( ch < 0 ) continue;
+      if ( (int)ch == 255 ) continue;
 
-  while ( true ) {
+      //if( enter_count==0 && ch==' ') ch='_';
+      rNote[char_index++] = ch;
+      //      Serial.print(ch);
 
-    // ..................
-    // every 200ms -     when timer4 called 2000us(2ms)
-    if ( timer4_cnt == 100 ) {
+      if ( ch == '\n' ) {
+        enter_count++;
+        switch (enter_count) {
+          case 1: if ( rNote[0] == 'E' && rNote[1] == 'O' && rNote[2] == 'M') break;
+            strncpy( songList[song_count].title, rNote, char_index - 1);
+            songList[song_count].title[char_index - 1] = '\0';
+            //                                                Serial.print("  title len:  "); Serial.println(strlen( songList[song_count].title ));
+            //                                                Serial.print("  title  "); Serial.print( songList[song_count].title ); Serial.println("]");
 
-      timer4_cnt = 0;
-      String send_message = "";
+            break; // should set the size of the title??
+          case 4: // end of each song
+            rNote[char_index - 1] = '\0';
+            char_index = 0;
 
-      for (int en = 0; en < sensing_notesCount ; en++) {
-
-        send_message += sensing_notes[en][1] ;
-        send_message += ",";
-        send_message += sensing_notes[en][0] ;
-
-        if ( en == sensing_notesCount - 1 ) {
-          send_message += "@";
-          break;
-        } else {
-          send_message += "-";
+            int result = fileSave(songList[song_count].title, rNote);
+            if ( result == 1 ) {
+              myFile = SD.open("SONGLIST.TXT", FILE_WRITE);
+              while (myFile) {
+                for (int j = 0; j < strlen(songList[song_count].title) ; j++) {
+                  myFile.print(songList[song_count].title[j]);
+                }
+                myFile.print('\n');
+                myFile.close();
+              }
+            }
+            /////////////////////////////////////////////////////////
+            song_count++;
+            Serial3.write("1");
+            enter_count = 0;
+            //break;
         }
-
       }
-
-      SerialUSB.println(send_message);
-
-      const char* ms = send_message.c_str();
-
-      Serial2.write(ms, strlen(ms));
-
+      if (ch == '*') {
+        Serial3.write("#");
+        break;
+      }
     }
+    //    Serial.println("end of download");
 
-  }
-
-
-
-  /* complete code
-   *
-    while ((ch = (char)Serial2.read()) != '$') {
-      uiStep();
-      updateMenu();
-      checkPowerOff();
-
-
-      if (mymenu == MAIN_MENU) break;
-
-      if ( ch == 255 ) continue;
-    }
-
-
-    if (mymenu == LIVEPLAY_MENU) {
-
-      //REALTIME PLAY
-      //Serial.println("\nREALTIME PLAY");
-
-      Serial2.write("1");
-
-
-      // title, artist, pTime..
-      String recv_Title = Serial2.readStringUntil('\n');
-      String recv_Artist = Serial2.readStringUntil('\n');
-      String recv_pTime = Serial2.readStringUntil('\n');
-
-      SerialUSB.println(recv_Title);
-      SerialUSB.println(recv_Artist);
-      SerialUSB.println(recv_pTime);
-
-      String recv_Contents = Serial2.readStringUntil('\n');
-
-      // 3200 or recv_Contents length
-      const char* music = recv_Contents.c_str();
-
-      // download done
-      Serial2.write("$");
-
-      // timer start
-  //    Timer4.start(2000);
-      play_music_realtime( music, recv_pTime.toInt() );
-
-  //    Timer4.stop();
-
-
-
-
-      // liveplay end
-      Serial2.write("$");
-      SerialUSB.println("livePlay end");
-
-    }
-
-
-
-    */
-
-}
-
-void checkRemoteControl() {
-
-
-  while ( Serial2.available() ) {
-
-    ch = (char)Serial2.read();
-
-    if ( ch == 255 ) return;
-
-
-    // exit
-    // android not implemented..?
-    if ( ch == '$' ) {
-      realtime_play_stop = true;
-      return;
-    }
-
-    // pause and resume
-    if ( ch == 'P' ) {
-      onPaused = !onPaused;
-      return;
-    }
-
-    if ( ch == 'T' ) {
-      // boundary  { 4, 6, 8, 10, 12, 14 }
-      int recv_Tempo = (Serial2.readStringUntil(':')).toInt();
-
-      double coef_Tempo = recv_Tempo / 10.0;
-
-      SerialUSB.print("recv_Tempo :"); SerialUSB.println(recv_Tempo);
-      SerialUSB.print("before TEMPO :"); SerialUSB.println(TEMPO);
-
-
-      TEMPO = original_TEMPO / (coef_Tempo);
-
-      SerialUSB.print("after TEMPO :"); SerialUSB.println(TEMPO);
-
-      return;
-    }
-
-    if ( ch == 'S' ) {
-
-      int recv_Point = (Serial2.readStringUntil(':')).toInt();
-      recv_Point *= 100;
-
-      move_Point = recv_Point;
-
-      SerialUSB.print("recv_Point : "); SerialUSB.print(recv_Point);
-      SerialUSB.print("  total_Time : "); SerialUSB.print(total_Time);
-      SerialUSB.print("    "); SerialUSB.println(recv_Point / (double)total_Time);
-
-      is_move_Time_updated = 1;
-      return;
-
+    myFile = SD.open("SONGLIST.TXT", FILE_READ);
+    if (myFile) {
+      //        Serial.println("song list.txt file reading...");
+      while (myFile.available()) { // test 파일의 내용을 시리얼 모니터에 출력한다.
+        ch = myFile.read();
+        SerialUSB.print(ch);
+      }
+      myFile.close();
     }
 
   }
 }
-
 
 void play_Record() {
 
@@ -725,9 +494,10 @@ void play_Record() {
     }
 
     if ( record_status ) record_sense_Note();
-    delay(0.75);		
-    if (sensing_notesCount > 0) {		
-      for (int j = 0; j < sensing_notesCount; j++) play(GREEN);		
+    delay(0.75);
+
+    if (sensing_notesCount > 0) {
+      for (int j = 0; j < sensing_notesCount; j++) play(GREEN);
     }
 
   }

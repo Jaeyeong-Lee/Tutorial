@@ -1,94 +1,6 @@
 
 /////////////////////////////////////////////////////// Part6 Make File(SD), Load, Save
 
-// 1. download and file make.
-int makeFile(bool isRecord, String fileName) {
-
-  String recv_data;
-  String path;
-
-  const char* p_path;
-  const char* p_data;
-
-  if ( isRecord == true ) {
-
-    // path setting
-    path = "Record/";
-    path += fileName;
-    path += ".txt";
-
-
-    if ( isFileExist("Record", fileName) )    return 0;
-
-    // file open and append new file name
-    if ( !list_file.open("Record/RECORDLIST.txt", O_WRITE | O_AT_END ) )
-      error("error code #1-1");
-
-    fileName += "\n";
-    const char* p_name = fileName.c_str();
-
-    list_file.write( p_name , strlen(p_name) );
-    if ( !list_file.close() )
-      error("error code #1-2");
-
-
-  } else if ( isRecord == false ) {
-
-    // path setting
-    path = "Score/";
-    path += fileName;
-    path += ".txt";
-
-
-    if ( isFileExist("Score", fileName) )    return 0;
-
-    // file open and append new file name
-    if ( !list_file.open("Score/SONGLIST.txt", O_WRITE | O_AT_END ) )
-      error("error code #1-3");
-
-    fileName += "\n";
-    const char* p_name = fileName.c_str();
-
-    list_file.write( p_name , strlen(p_name) );
-    if ( !list_file.close() )
-      error("error code #1-4");
-  }
-
-  p_path = path.c_str();
-  if (  !contents_file.open(p_path, O_CREAT | O_WRITE ) )
-    error("error code #1-5");
-
-  // title, user, tempo, contents
-  for (int i = 0; i < 4; i++) {
-
-    if ( i != 3 ) {
-      recv_data = Serial3.readStringUntil('\n');
-      recv_data += "\n";
-    }
-    else  recv_data = Serial3.readStringUntil(':');
-
-    SerialUSB.print(i);    SerialUSB.print(recv_data);
-
-
-    p_data = recv_data.c_str();
-
-    contents_file.write(p_data, strlen(p_data) );
-
-  }
-
-  if ( !contents_file.close() )
-    error("error code #1-6");
-
-
-  // return success
-  return 1;
-}
-
-void sendFileList(bool isRecord) {}
-void removeSelectedFile(bool isRecord, String name) {}
-void sendFileContents(String name) {}
-bool isFileExist(String path,String fileName) {}
-
 void makeFilename(char *title) {
   int len = strlen(title);
   //  Serial.print("title : "); Serial.println(title);
@@ -121,7 +33,6 @@ void getTitlesFromSDCard() {  //  SONGLIST.TXT 를 읽어  songList[song_count].
   int char_index = 0;
   song_count = 0;
 
-/*
   ///////////////////////////////////////////// directory setting Start (Score)
   if ( !SD.chdir() ) {
     SerialUSB.println("chdir to root failed");
@@ -132,23 +43,10 @@ void getTitlesFromSDCard() {  //  SONGLIST.TXT 를 읽어  songList[song_count].
   }
   cout << F("chdir to Score\n");
   ///////////////////////////////////////////// directory setting End
-*/
-
 
 
   //  SerialUSB.println("# read SONGLIST.TXT #");
   myFile = SD.open("SONGLIST.TXT", FILE_READ);
-  /*
-  if ( !list_file.open("SONGLIST.TXT", O_READ ) )
-      error("error code #0-1");
-  
-  if( list_file.available() ) {
-      
-      const char* p_data;  
-      String read_data = list_file.read( p_data, list_file.fileSize() );
-      
-  }
-  */
   if (myFile) {
 
     SerialUSB.println("Read SDcard...");
@@ -412,7 +310,7 @@ void makeRecordfile() {
   //  SerialUSB.print("  after TEMPO] current cursor   :   ");
   //  SerialUSB.println(current_cursor);
 
-  SerialUSB.println("    Contents   ]  ");
+  //  SerialUSB.println("    Contents   ]  ");
 
   //  for (int i = 0; i < strlen(content); i++) {
   //    SerialUSB.print(content[i]);
@@ -442,11 +340,11 @@ int fileSave(char *title, char *content) {
 
   ///////////////////////////////////////////// directory setting Start (Record)
   if ( !SD.chdir() ) {
-    SerialUSB.println("chdir to root failed");
+    //      SerialUSB.println("chdir to root failed");
   }
 
   if (!SD.chdir("Record")) {
-    SerialUSB.println("chdir failed for Record.");
+    //      SerialUSB.println("chdir failed for Record.");
   }
   cout << F("chdir to Record\n");
   ///////////////////////////////////////////// directory setting End

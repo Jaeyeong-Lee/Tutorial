@@ -4,7 +4,7 @@
 // switch
 void uiSetup(void) {
 
-  // Rotary Switch`
+  // Rotary Switch
   pinMode(uiKeySelect, INPUT);           // set pin to input
   //  digitalWrite(uiKeySelect, HIGH);       // turn on pullup resistors
 
